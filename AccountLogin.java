@@ -1,3 +1,4 @@
+import java.time.LocalDateTime;
 import java.util.Scanner;
 
 public class AccountLogin {
@@ -71,6 +72,7 @@ public class AccountLogin {
 		}
 		else if(sel.equals("3")) {
 			//Create new post
+			this.post();
 		}
 		else if(sel.equals("4")) {
 			//Check all friends
@@ -87,6 +89,28 @@ public class AccountLogin {
 		else if(sel.equals("8")) {
 			//See Hashtags in trend
 		}
+		
+	}
+	
+	public void post() {
+		System.out.println("Please provide the following details for the post");
+		System.out.println();
+		Scanner input = new Scanner(System.in);
+		
+		
+		String message;
+		System.out.println("Enter the message you need to post");
+		message = input.nextLine();
+		
+		
+		String type = "post";
+		int parentID = -1;
+		
+		LocalDateTime myObj = LocalDateTime.now();
+		String dateTime = myObj.toString();
+		
+		data.post(this.getID(), message, dateTime, type, parentID);
+		
 		
 	}
 	

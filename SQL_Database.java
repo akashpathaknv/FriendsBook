@@ -113,6 +113,57 @@ public class SQL_Database implements DataStorage{
         }
 		
 	}
+	@Override
+	public void post(String userID, String message, String datetime, String type, int parent) {
+		
+		try
+        {
+             //connect to the database
+             connection = DriverManager.getConnection(DATABASE_URL, 
+                     "pathaka6088", "2002166");
+             //create a statement
+             statement = connection.createStatement();
+             
+             
+             //rolled back to here if anything wrong
+             connection.setAutoCommit(false);
+             
+             //insert a record into user Table
+             
+             statement.executeUpdate("insert into post(userID, content, datetime, type, parent) values "
+                     + "('" + userID + "', '" + message + "', '" 
+                     + datetime + "', '" + type + "', '" + parent + "')");
+             
+             connection.commit();
+             connection.setAutoCommit(true);
+             
+              //display message
+            System.out.println("*** Your post has been successfully created ***");
+            
+            System.out.println();
+             
+         }
+         catch(SQLException e)
+         {
+             //handle the exceptions
+             System.out.println("Post Creation has failed");
+             e.printStackTrace();
+         }
+         finally
+         {
+             //close the database
+             try
+             {
+                 //resultSet.close();
+                 statement.close();
+                 connection.close();
+             }
+             catch(Exception e)
+             {
+                 e.printStackTrace();
+             }
+         }
+	}
 
 
 }
