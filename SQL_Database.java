@@ -128,11 +128,17 @@ public class SQL_Database implements DataStorage{
              //rolled back to here if anything wrong
              connection.setAutoCommit(false);
              
-             //insert a record into user Table
+             //insert a record into post Table
              
              statement.executeUpdate("insert into post(userID, content, datetime, type, parent) values "
                      + "('" + userID + "', '" + message + "', '" 
                      + datetime + "', '" + type + "', '" + parent + "')");
+             resultSet = statement.executeQuery("select id from post order by id desc limit 1");
+             
+             if(resultSet.next()) {
+            	 statement.executeUpdate("insert into updates(userID, type, postID) values('" + userID + "', '" + type + "', " + resultSet.getInt(1) + ")");
+             }
+             
              
              connection.commit();
              connection.setAutoCommit(true);
@@ -148,6 +154,132 @@ public class SQL_Database implements DataStorage{
              //handle the exceptions
              System.out.println("Post Creation has failed");
              e.printStackTrace();
+         }
+         finally
+         {
+             //close the database
+             try
+             {
+                 resultSet.close();
+                 statement.close();
+                 connection.close();
+             }
+             catch(Exception e)
+             {
+                 e.printStackTrace();
+             }
+         }
+	}
+	@Override
+	public boolean sendNotification(String sender, String receiver, String message, String dateTime, String type,
+			String status) {
+		
+		try
+        {
+             //connect to the database
+             connection = DriverManager.getConnection(DATABASE_URL, 
+                     "pathaka6088", "2002166");
+             //create a statement
+             statement = connection.createStatement();
+             
+             
+             //rolled back to here if anything wrong
+             connection.setAutoCommit(false);
+             
+             //insert a record into notification Table
+             
+             statement.executeUpdate("insert into notification(userid1, userid2, message, datetime, type, status) values "
+                     + "('" + sender + "', '"+ receiver +  "', '" + message + "', '" 
+                     + dateTime + "', '" + type + "', '" + status + "')");
+             
+             
+             //insert into friend table only if type = n (notification)
+             
+             if(type.equals("n")) {
+            	 
+            	 //Status u - friend request not accepted
+            	 statement.executeUpdate("insert into friend(id1, id2, status) values" + "('" + sender + "', '" + receiver + "', '" + status + "')");
+             }
+             
+             connection.commit();
+             connection.setAutoCommit(true);
+             
+              //display message
+            if(type.equals("n")) {
+            	System.out.println("*** Your friend request has been succesfully sent ***");
+            }
+            else {
+            	System.out.println("*** Your message has been succesfully sent ***");
+            }
+            
+            
+            System.out.println();
+            return true;
+         }
+         catch(SQLException e)
+         {
+             //handle the exceptions
+             System.out.println("Notification Creation has failed");
+             e.printStackTrace();
+             return false;
+         }
+         finally
+         {
+             //close the database
+             try
+             {
+                 //resultSet.close();
+                 statement.close();
+                 connection.close();
+             }
+             catch(Exception e)
+             {
+                 e.printStackTrace();
+             }
+         }
+	}
+	@Override
+	public boolean updateProfile(String userName, String name, String schoolName, String password, boolean flag) {
+		
+		try
+        {
+             //connect to the database
+             connection = DriverManager.getConnection(DATABASE_URL, 
+                     "pathaka6088", "2002166");
+             //create a statement
+             statement = connection.createStatement();
+             
+             
+             //rolled back to here if anything wrong
+             connection.setAutoCommit(false);
+             
+             //update a record into user Table
+             
+             if(flag) {
+            	 statement.executeUpdate("update user set name = '" + name + "', school = '" + schoolName + "', password = '" + password + "'  where id = '" + userName + "'");
+             }
+             else {
+            	 statement.executeUpdate("update user set name = '" + name + "', school = '" + schoolName + "'  where id = '" + userName + "'");
+            	 int id = -1;
+            	 String type = "update";
+            	 
+            	 //insert into updates table since user updated the profile
+            	 statement.executeUpdate("insert into updates(userID, type, postID) values('" + userName + "', '" + type + "', " + id + ")");
+             }
+             
+             System.out.println("*** Your friend request has been succesfully sent ***");
+             connection.commit();
+             connection.setAutoCommit(true);
+            
+            System.out.println();
+            return true;
+         }
+         catch(SQLException e)
+         {
+             //handle the exceptions
+             System.out.println("Notification Creation has failed");
+             e.printStackTrace();
+             return false;
          }
          finally
          {

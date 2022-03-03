@@ -61,6 +61,7 @@ public class AccountLogin {
 		System.out.println("6. Send a message");
 		System.out.println("7. Send a friend request");
 		System.out.println("8. See Hashtags in trend");
+		System.out.println("press x to logout");
 		
 		String sel = input.nextLine();
 		
@@ -79,20 +80,27 @@ public class AccountLogin {
 		}
 		else if(sel.equals("5")) {
 			//Update your profile
+			updateProfile();
 		}
 		else if(sel.equals("6")) {
 			//Send a message
+			sendMessage();
 		}
 		else if(sel.equals("7")) {
 			//Send a friend request
+			sendFriendRequest();
 		}
 		else if(sel.equals("8")) {
 			//See Hashtags in trend
+		}
+		else if(sel.equals("x")) {
+			return;
 		}
 		
 	}
 	
 	public void post() {
+		
 		System.out.println("Please provide the following details for the post");
 		System.out.println();
 		Scanner input = new Scanner(System.in);
@@ -114,4 +122,89 @@ public class AccountLogin {
 		
 	}
 	
+	
+	public void sendFriendRequest() {
+		
+		System.out.println("Enter your friend's username:");
+		System.out.println();
+		Scanner input = new Scanner(System.in);
+		
+		String username = input.nextLine();
+		LocalDateTime myObj = LocalDateTime.now();
+		String dateTime = myObj.toString();
+		String message = "Hello!, I would like to be your friend";
+		
+		//Type n = notification, status u = unread
+		String type = "n";
+		String status = "u";
+		if(data.sendNotification(this.userId, username, message, dateTime, type, status)) {
+			System.out.println("Friend request has been successfully sent!!");
+		}
+		else {
+			System.out.println("Friend request failed");
+		}
+	}
+	
+	public void sendMessage() {
+		
+		System.out.println("Enter your friend's username:");
+		System.out.println();
+		Scanner input = new Scanner(System.in);
+		
+		String username = input.nextLine();
+		LocalDateTime myObj = LocalDateTime.now();
+		String dateTime = myObj.toString();
+		System.out.println("Enter your message: ");
+		System.out.println();
+		String message = input.nextLine();
+		
+		//Type m = message, status u = unread
+		String type = "m";
+		String status = "u";
+		if(data.sendNotification(this.userId, username, message, dateTime, type, status)) {
+			System.out.println("Message sent!!");
+		}
+		else {
+			System.out.println("Message delivery failed.");
+		}
+	}
+
+	
+	public void updateProfile() {
+		
+		System.out.println("Please select the option you want to update:");
+		System.out.println("1. Name");
+		System.out.println("2. School");
+		System.out.println("3. Password");
+		System.out.println("x. Exit");
+		
+		Scanner input = new Scanner(System.in);
+		String sel = input.nextLine();
+		String password = "";
+		boolean flag = false;
+		if(sel.equals("x")) {
+			return;
+		}
+		else if(sel.equals("1")) {
+			System.out.println("Enter you new name:");
+			 this.setName(input.nextLine());
+		}
+		else if(sel.equals("2")) {
+			System.out.println("Enter you new School name:");
+			this.setSchool(input.nextLine());
+		}
+		else if(sel.equals("3")) {
+			System.out.println("Enter you new Password:");
+			password = input.nextLine();
+			flag = true;
+		}
+		
+		if(data.updateProfile(this.getID(), this.getName(), this.getSchool(), password, flag)) {
+			System.out.println("User has succesfully updated the profile");
+		}
+		else {
+			System.out.println("Profile was not updated");
+		}
+		input.close();
+	}
 }
