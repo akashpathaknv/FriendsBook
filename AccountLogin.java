@@ -1,4 +1,5 @@
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class AccountLogin {
@@ -67,16 +68,44 @@ public class AccountLogin {
 		
 		if(sel.equals("1")) {
 			//select a post to update or to add comment
+			System.out.println("Press 1 for checking posts");
+			System.out.println("Press 2 for checking updates");
+			System.out.println("Press x to exit");
+			sel = input.nextLine();
+			if(sel.equals("x")) {
+				return;
+			}
+			else if(sel.equals("1")) {
+				showPosts();
+			}
+			else if(sel.equals("2")) {
+				showUpdates();
+			}
 		}
 		else if(sel.equals("2")) {
 			//Check notifications
+			System.out.println("Press 1 for checking friend request's");
+			System.out.println("Press 2 for checking Messages");
+			System.out.println("Press x to exit");
+			sel = input.nextLine();
+			if(sel.equals("x")) {
+				return;
+			}
+			else if(sel.equals("1")) {
+				showFriendRequest();
+			}
+			else if(sel.equals("2")) {
+				showMessage();
+			}
+			
 		}
 		else if(sel.equals("3")) {
 			//Create new post
-			this.post();
+			post();
 		}
 		else if(sel.equals("4")) {
 			//Check all friends
+			showFriends();
 		}
 		else if(sel.equals("5")) {
 			//Update your profile
@@ -113,6 +142,28 @@ public class AccountLogin {
 		
 		String type = "post";
 		int parentID = -1;
+		
+		LocalDateTime myObj = LocalDateTime.now();
+		String dateTime = myObj.toString();
+		
+		data.post(this.getID(), message, dateTime, type, parentID);
+		
+		
+	}
+	
+	public void comment(int parent) {
+		
+		System.out.println();
+		Scanner input = new Scanner(System.in);
+		
+		
+		String message;
+		System.out.println("Enter your comment");
+		message = input.nextLine();
+		
+		
+		String type = "comment";
+		int parentID = parent;
 		
 		LocalDateTime myObj = LocalDateTime.now();
 		String dateTime = myObj.toString();
@@ -168,6 +219,27 @@ public class AccountLogin {
 			System.out.println("Message delivery failed.");
 		}
 	}
+	
+	public void sendMessage(String receiver) {
+		
+		Scanner input = new Scanner(System.in);
+		
+		LocalDateTime myObj = LocalDateTime.now();
+		String dateTime = myObj.toString();
+		System.out.println("Enter your message: ");
+		System.out.println();
+		String message = input.nextLine();
+		
+		//Type m = message, status u = unread
+		String type = "m";
+		String status = "u";
+		if(data.sendNotification(this.userId, receiver, message, dateTime, type, status)) {
+			System.out.println("Message sent!!");
+		}
+		else {
+			System.out.println("Message delivery failed.");
+		}
+	}
 
 	
 	public void updateProfile() {
@@ -206,5 +278,95 @@ public class AccountLogin {
 			System.out.println("Profile was not updated");
 		}
 		input.close();
+	}
+
+	
+	public void showFriendRequest() {
+		
+		ArrayList<String> friendList = this.data.getFriendRequest(this.userId);
+		ArrayList<String> acceptedRequest = new ArrayList<String>();
+		
+		int i = 1;
+		Scanner input = new Scanner(System.in);
+		String sel;
+		for(String s : friendList) {
+			System.out.println(i++ +". " + s + "Sent you friend request.");
+			System.out.println("press y to accept the request");
+			sel = input.nextLine();
+			if(sel.equals("y")) {
+				acceptedRequest.add(s);
+			}
+		}
+		
+		for(String s: acceptedRequest) {
+			//System.out.println("Friend request for " + s + " has been accepted " + this.getID());
+			if(data.acceptFriendRequest(this.getID(), s)) {
+				System.out.println("Friend request for " + s + " has been accepted");
+			}
+		}
+		
+	}
+
+	public void showMessage() {
+		ArrayList<String[]> messages = new ArrayList<String[]>();
+		Scanner input = new Scanner(System.in);
+		String sel;
+		messages = this.data.displayMessages(this.getID());
+		
+		for(String[] message : messages) {
+			System.out.println(message[0] + " : " + message[1]);
+			System.out.println();
+			System.out.println("Press y to respond to " + message[0]);
+			sel = input.nextLine();
+			if(sel.equals("y")) {
+				this.sendMessage(message[0]);
+			}
+		}
+	}
+
+	public void showFriends() {
+		ArrayList<String> friends = new ArrayList<String>();
+		friends = this.data.displayFriends(this.getID());
+		System.out.println("Here are your friends:");
+		System.out.println();
+		for(String friend : friends) {
+			System.out.println(friend);
+		}
+	}
+
+	public void showUpdates() {
+		ArrayList<String> updates = new ArrayList<String>();
+		updates = this.data.displayUpdates(this.getID());
+		
+		for(String update : updates) {
+			System.out.println(update + " updated profile");
+		}
+	}
+	
+	public void showPosts() {
+		ArrayList<String[]> posts = new ArrayList<String[]>();
+		
+		posts = this.data.displayPosts(this.getID());
+		int i = 1;
+		for(String[] post : posts) {
+			System.out.println(i + " " + post[1] + " : " + post[2]);
+			displayComments(Integer.valueOf(post[0]));
+			System.out.println("Do you want to add comment? (y/n) ");
+			Scanner input = new Scanner(System.in);
+			String sel = input.nextLine();
+			if(sel.equals("y")) {
+				comment(Integer.valueOf(post[0]));
+			}
+		}
+	}
+
+	public void displayComments(int parent) {
+
+		ArrayList<String> comments = new ArrayList<String>();
+		comments = this.data.displayComments(parent);
+		for(String comment : comments) {
+			System.out.println("	" + comment);
+		}
+		
 	}
 }

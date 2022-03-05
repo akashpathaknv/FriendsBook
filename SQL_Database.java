@@ -3,6 +3,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SQL_Database implements DataStorage{
 	
@@ -144,7 +146,7 @@ public class SQL_Database implements DataStorage{
              connection.setAutoCommit(true);
              
               //display message
-            System.out.println("*** Your post has been successfully created ***");
+            System.out.println("*** Your post/comment has been successfully created ***");
             
             System.out.println();
              
@@ -295,6 +297,342 @@ public class SQL_Database implements DataStorage{
                  e.printStackTrace();
              }
          }
+	}
+	@Override
+	public ArrayList<String> getFriendRequest(String userName) {
+		ArrayList<String> friendList = new ArrayList<String>();
+		
+		try
+        {
+            
+            //connect to the database
+			connection = DriverManager.getConnection(DATABASE_URL, 
+                  "pathaka6088", "2002166");
+            //create statement
+            statement = connection.createStatement();
+            //search the accountID in the onlineAccount table
+            resultSet = statement.executeQuery("Select id2 from friend where status = 'u'");
+            
+            while(resultSet.next()) {
+            	friendList.add(resultSet.getString(1));
+            }
+            
+            return friendList;
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+        finally
+        {
+            //close the database
+            try
+            {
+                connection.close();
+                statement.close();
+                resultSet.close();
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+            
+        }
+	}
+	@Override
+	public boolean acceptFriendRequest(String user1, String user2) {
+		
+		try
+        {
+             //connect to the database
+             connection = DriverManager.getConnection(DATABASE_URL, 
+                     "pathaka6088", "2002166");
+             //create a statement
+             statement = connection.createStatement();
+             
+             
+             //rolled back to here if anything wrong
+             connection.setAutoCommit(false);
+             
+             //update a record into user Table
+             
+             statement.executeUpdate("update friend set status = 'a' WHERE id1 = '" + user1 + "' AND id2 = '" + user2 + "'" );
+             String status = "x";
+             statement.executeUpdate("insert into friend(id1, id2, status) values" + "('" + user2 + "', '" + user1 + "', '" + status + "')"); 
+             
+             connection.commit();
+             connection.setAutoCommit(true);
+            
+            System.out.println();
+            return true;
+         }
+         catch(SQLException e)
+         {
+             //handle the exceptions
+             System.out.println("Friend request acceptance failed");
+             e.printStackTrace();
+             return false;
+         }
+         finally
+         {
+             //close the database
+             try
+             {
+                 //resultSet.close();
+                 statement.close();
+                 connection.close();
+             }
+             catch(Exception e)
+             {
+                 e.printStackTrace();
+             }
+         }
+
+	}
+	@Override
+	public ArrayList<String[]> displayMessages(String id) {
+		
+		ArrayList<String[]> messageList = new ArrayList<String[]>();
+		Statement statement1 = null;
+		
+		try
+        {
+            
+            //connect to the database
+			connection = DriverManager.getConnection(DATABASE_URL, 
+                  "pathaka6088", "2002166");
+            //create statement
+            statement = connection.createStatement();
+            
+            resultSet = statement.executeQuery("Select userid1, userid2, message from notification where type = 'm' AND userid2 = '" + id + "' AND status = 'u'" );
+            
+            while(resultSet.next()) {
+            	messageList.add(new String[] {resultSet.getString(1), resultSet.getString(3)});
+            	statement1 = connection.createStatement();
+            	statement1.executeUpdate("UPDATE notification SET status = 'r' WHERE userid1 = '" + resultSet.getString(1) + "' AND userid2 = '" + resultSet.getString(2) + "'" );
+            	
+            }
+            
+            return messageList;
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+        finally
+        {
+            //close the database
+            try
+            {
+            	if(resultSet.next()) {
+            		resultSet.close();
+            		statement1.close();
+            	}
+            	
+                connection.close();
+                statement.close();
+                
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+            
+        }
+	}
+	@Override
+	public ArrayList<String> displayFriends(String id) {
+		
+		ArrayList<String> friendList = new ArrayList<String>();
+		
+		try
+        {
+            
+            //connect to the database
+			connection = DriverManager.getConnection(DATABASE_URL, 
+                  "pathaka6088", "2002166");
+            //create statement
+            statement = connection.createStatement();
+            
+            resultSet = statement.executeQuery("Select id2 from friend where id1 = '" + id + "'" );
+            
+            while(resultSet.next()) {
+            	friendList.add(resultSet.getString(1));
+            	
+            }
+            
+            return friendList;
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+        finally
+        {
+            //close the database
+            try
+            {
+            	if(resultSet.next()) {
+            		resultSet.close();	
+            	}
+            	
+                connection.close();
+                statement.close();
+                
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+            
+        }
+	}
+	@Override
+	public ArrayList<String> displayUpdates(String id) {
+		
+		ArrayList<String> friendList = new ArrayList<String>();
+		
+		try
+        {
+            
+            //connect to the database
+			connection = DriverManager.getConnection(DATABASE_URL, 
+                  "pathaka6088", "2002166");
+            //create statement
+            statement = connection.createStatement();
+            
+            resultSet = statement.executeQuery("Select userID from updates where userID IN (select id2 from friend where id1 = '" + id + "' OR id2) ORDER BY id DESC LIMIT 3" );
+            
+            while(resultSet.next()) {
+            	friendList.add(resultSet.getString(1));
+            	
+            }
+            
+            return friendList;
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+        finally
+        {
+            //close the database
+            try
+            {
+            	if(resultSet.next()) {
+            		resultSet.close();	
+            	}
+            	
+                connection.close();
+                statement.close();
+                
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+            
+        }
+	}
+	@Override
+	public ArrayList<String[]> displayPosts(String id) {
+		
+		ArrayList<String[]> postList = new ArrayList<String[]>();
+		
+		try
+        {
+            
+            //connect to the database
+			connection = DriverManager.getConnection(DATABASE_URL, 
+                  "pathaka6088", "2002166");
+            //create statement
+            statement = connection.createStatement();
+            
+            resultSet = statement.executeQuery("Select id, userID, content from post where userID IN (select id2 from friend where id1 = '" + id + "') AND type = 'post' ORDER BY id DESC LIMIT 3" );
+            
+            while(resultSet.next()) {
+            	postList.add(new String[] {resultSet.getString(1), resultSet.getString(2), resultSet.getString(3)});
+            	
+            }
+            
+            return postList;
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+        finally
+        {
+            //close the database
+            try
+            {
+            	if(resultSet.next()) {
+            		resultSet.close();	
+            	}
+            	
+                connection.close();
+                statement.close();
+                
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+            
+        }
+	}
+	@Override
+	public ArrayList<String> displayComments(int parent) {
+		
+		ArrayList<String> commentList = new ArrayList<String>();
+		
+		try
+        {
+            
+            //connect to the database
+			connection = DriverManager.getConnection(DATABASE_URL, 
+                  "pathaka6088", "2002166");
+            //create statement
+            statement = connection.createStatement();
+            
+            resultSet = statement.executeQuery("Select content from post where parent = " + parent );
+            
+            while(resultSet.next()) {
+            	commentList.add(resultSet.getString(1));
+            	
+            }
+            
+            return commentList;
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+            return null;
+        }
+        finally
+        {
+            //close the database
+            try
+            {
+            	if(resultSet.next()) {
+            		resultSet.close();	
+            	}
+            	
+                connection.close();
+                statement.close();
+                
+            }
+            catch(Exception e)
+            {
+                e.printStackTrace();
+            }
+            
+        }
 	}
 
 
